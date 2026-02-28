@@ -1,0 +1,71 @@
+package com.projects.airbnb.entity;
+
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(
+        //Particular hotel + room_type + particular_date will have unique inventory
+        uniqueConstraints = @UniqueConstraint(
+                name = "unique_hotel_room_date",
+                columnNames = {"hotel_id","room_id","date"}
+        )
+)
+public class Inventory {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hotel_id")
+    private Hotel hotel;
+
+    @ManyToOne(fetch = FetchType.EAGER)//One room can have different inventories based on the date. E.g. on 21st the inventory will be different and on 22nd the inventory will be different
+    @JoinColumn(name = "room_id")
+    private Room room;
+
+    @Column(nullable = false)
+    private LocalDate date;
+
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
+    private Integer bookedCount;
+
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
+    private Integer reservedCount;
+
+    @Column(nullable = false)
+    private Integer totalCount;
+
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal surgeFactor;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price; //basePrice*surgeFactor
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private Boolean closed;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+
+}
