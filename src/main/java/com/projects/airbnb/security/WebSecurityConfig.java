@@ -31,10 +31,10 @@ public class WebSecurityConfig {
                  .authorizeHttpRequests((auth)->auth
                          .requestMatchers("/admin/**").hasRole("HOTEL_MANAGER")
                          .requestMatchers("/booking/**").authenticated()
+                         .requestMatchers("/users/**").authenticated()
                          .anyRequest().permitAll()
                  )
                  .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-//                 .anonymous(anon -> anon.disable())
                  .exceptionHandling((exHandlingConfig)->{
                      exHandlingConfig.accessDeniedHandler(accessDeniedHandler())//for 403 exceptions
                              .authenticationEntryPoint(authenticationEntryPoint());//for 401 exceptions

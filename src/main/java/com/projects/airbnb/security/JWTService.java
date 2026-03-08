@@ -33,7 +33,7 @@ public class JWTService {
                 .claim("email",user.getEmail())
                 .claim("roles",user.getAuthorities().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis()+1000*60*5))//5mins
+                .expiration(new Date(System.currentTimeMillis()+1000*60*20))//20mins
                 .signWith(getSecretKey())
                 .compact();
     }
@@ -43,7 +43,7 @@ public class JWTService {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis()+1000*60*10))//10mins
+                .expiration(new Date(System.currentTimeMillis()+ 1000L*60*60*24*30))//30 days
                 .signWith(getSecretKey())
                 .compact();
     }

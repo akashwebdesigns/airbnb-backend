@@ -12,7 +12,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 public interface InventoryRepository extends JpaRepository<Inventory,Long> {
@@ -125,4 +127,28 @@ public interface InventoryRepository extends JpaRepository<Inventory,Long> {
 
     List<Inventory> findByHotelAndDateBetween(Hotel hotel, LocalDate startDate, LocalDate endDate);
 
+    List<Inventory> findByRoomOrderByDate(Room room);
+
+    @Query("""
+                SELECT i from Inventory i
+                    WHERE i.room.id = :roomId
+                        AND i.date BETWEEN :startDate and :endDate
+    """)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Inventory> getInventoryAndLockBeforeUpdate(@Param("roomId") Long roomId,
+                                                    @Param("startDate") LocalDate startDate,
+                                                    @Param("endDate") LocalDate endDate);
+
+
+
+
+    @Modifying
+    @Query("UPDATE Inventory i SET i.totalCount = :totalCount " +
+            "WHERE i.room.id = :roomId AND i.date >= :today")
+    void updateTotalCount(@Param("roomId") Long roomId,
+                          @Param("totalCount") int totalCount,
+                          @Param("today") LocalDate today);
+
+
+    List<Inventory> findByRoomAndDateGreaterThanEqual(Room room, LocalDate now);
 }

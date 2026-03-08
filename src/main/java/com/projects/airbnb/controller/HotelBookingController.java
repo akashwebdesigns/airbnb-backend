@@ -6,6 +6,7 @@ import com.projects.airbnb.dto.BookingRequestDto;
 import com.projects.airbnb.dto.GuestDto;
 import com.projects.airbnb.entity.enums.BookingStatus;
 import com.projects.airbnb.service.BookingService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,28 +23,33 @@ public class HotelBookingController {
     private final BookingService bookingService;
 
     @PostMapping("/init")
+    @Operation(summary = "Initiate the booking", tags = {"Booking Flow"})
     public ResponseEntity<BookingDto> initialiseBooking(@RequestBody BookingRequestDto bookingRequestDto){
         return ResponseEntity.ok(bookingService.initialiseBooking(bookingRequestDto));
     }
 
     @PostMapping("/{bookingId}/addGuests")
+    @Operation(summary = "Add guests to the booking", tags = {"Booking Flow"})
     public ResponseEntity<BookingDto> addGuests(@PathVariable Long bookingId, @RequestBody List<GuestDto> guestDtoList){
         return ResponseEntity.ok(bookingService.addGuests(bookingId,guestDtoList));
     }
 
     @PostMapping("/{bookingId}/payments")
+    @Operation(summary = "Initiate payment flow for the booking", tags = {"Booking Flow"})
     public ResponseEntity<Map<String,String>> initiatePayment(@PathVariable Long bookingId){
         String checkoutUrl = bookingService.initiatePayment(bookingId);
         return ResponseEntity.ok(Map.of("checkoutUrl",checkoutUrl));
     }
 
     @PostMapping("/{bookingId}/cancel")
+    @Operation(summary = "Cancel the booking", tags = {"Booking Flow"})
     public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId) {
         bookingService.cancelBooking(bookingId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{bookingId}/status")
+    @Operation(summary = "Check the status of the booking", tags = {"Booking Flow"})
     public ResponseEntity<Map<String, BookingStatus>> getBookingStatus(@PathVariable Long bookingId) {
         return ResponseEntity.ok(Map.of("status",bookingService.getBookingStatus(bookingId)));
     }

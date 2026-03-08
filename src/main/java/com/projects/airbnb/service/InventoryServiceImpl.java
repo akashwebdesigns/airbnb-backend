@@ -1,14 +1,15 @@
 package com.projects.airbnb.service;
 
 
-import com.projects.airbnb.dto.HotelDto;
-import com.projects.airbnb.dto.HotelPriceDto;
-import com.projects.airbnb.dto.HotelSearchRequestDto;
-import com.projects.airbnb.entity.Hotel;
-import com.projects.airbnb.entity.Inventory;
-import com.projects.airbnb.entity.Room;
+import com.projects.airbnb.dto.*;
+import com.projects.airbnb.entity.*;
+import com.projects.airbnb.exception.ResourceNotFoundException;
+import com.projects.airbnb.exception.UnauthorizedException;
 import com.projects.airbnb.repository.HotelMinPriceRepository;
 import com.projects.airbnb.repository.InventoryRepository;
+import com.projects.airbnb.repository.RoomRepository;
+import com.projects.airbnb.strategy.PricingService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -17,11 +18,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.projects.airbnb.util.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j
@@ -30,6 +36,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final HotelMinPriceRepository hotelMinPriceRepository;
+    private final PricingService pricingService;
+    private final RoomRepository roomRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -80,5 +88,86 @@ public class InventoryServiceImpl implements InventoryService {
                         dateCount, pageable);
 
         return hotelPage;
+    }
+
+    @Override
+    public List<InventoryDto> getAllInventoryByRoom(Long roomId) {
+
+        log.info("Getting All inventory by room for room with id: {}", roomId);
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: "+roomId));
+
+        User user = getCurrentUser();
+        if(!user.equals(room.getHotel().getOwner())) throw new UnauthorizedException("You are not the owner of room with id: "+roomId);
+
+        return inventoryRepository.findByRoomOrderByDate(room).stream()
+                .map((element) -> modelMapper.map(element,
+                        InventoryDto.class))
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    @Transactional
+    public void updateInventory(Long roomId, UpdateInventoryRequestDto updateInventoryRequestDto) {
+        log.info("Updating All inventory by room for room with id: {} between date range: {} - {}", roomId,
+                updateInventoryRequestDto.getStartDate(), updateInventoryRequestDto.getEndDate());
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: "+roomId));
+
+        User user = getCurrentUser();
+
+        if(!user.equals(room.getHotel().getOwner())) throw new UnauthorizedException("You are not the owner of room with id: "+roomId);
+
+        //First we lock the desired inventories and then will update it, so that in the meanwhile another transaction does not alter it
+        List<Inventory> inventoriesToBeUpdated = inventoryRepository.getInventoryAndLockBeforeUpdate(roomId, updateInventoryRequestDto.getStartDate(),
+                updateInventoryRequestDto.getEndDate());
+
+        inventoriesToBeUpdated.forEach((inventory)->{
+            inventory.setClosed(updateInventoryRequestDto.getClosed());
+            inventory.setSurgeFactor(updateInventoryRequestDto.getSurgeFactor());
+            BigDecimal updatedPrice = pricingService.calculateDynamicPrice(inventory);
+            inventory.setPrice(updatedPrice);
+        });
+
+        inventoryRepository.saveAll(inventoriesToBeUpdated);
+    }
+
+    @Override
+    @Transactional
+    public void releaseReservation(Booking booking) {
+        Room room = booking.getRoom();
+        //Lock the inventories
+        List<Inventory> inventories = inventoryRepository.getInventoryAndLockBeforeUpdate(room.getId(), booking.getCheckInDate(), booking.getCheckOutDate());
+        inventories.forEach((inventory -> {
+            inventory.setReservedCount(
+                    Math.max(0, inventory.getReservedCount() - booking.getRoomsCount())
+            );
+        }));
+
+        inventoryRepository.saveAll(inventories);
+    }
+
+
+
+    @Transactional
+    public void updateTotalCountForRoom(Room room, int newTotalCount) {
+        log.info("Updating totalCount for room: {} to: {}", room.getId(), newTotalCount);
+        inventoryRepository.updateTotalCount(room.getId(), newTotalCount, LocalDate.now());
+    }
+
+    @Transactional
+    public void updatePricesForRoom(Room room) {
+        log.info("Recalculating dynamic prices for room: {}", room.getId());
+
+        List<Inventory> inventories = inventoryRepository
+                .findByRoomAndDateGreaterThanEqual(room, LocalDate.now());
+
+        inventories.forEach(inventory ->
+                inventory.setPrice(pricingService.calculateDynamicPrice(inventory))
+        );
+
+        inventoryRepository.saveAll(inventories);
     }
 }

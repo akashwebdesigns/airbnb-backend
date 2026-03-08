@@ -43,7 +43,6 @@ public class PricingUpdateService {
 
         while (true){
 
-            log.info("Processing page "+page);
             Page<Hotel> hotels = hotelRepository.findAll(PageRequest.of(page, batchSize));
 
             if (hotels.isEmpty()) break;

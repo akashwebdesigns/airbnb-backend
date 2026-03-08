@@ -15,8 +15,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.projects.airbnb.util.AppUtils.getCurrentUser;
 
 
 @Service
@@ -100,5 +103,42 @@ public class RoomServiceImpl implements RoomService{
 
         inventoryService.deleteInventories(room);
         roomRepository.delete(room);
+    }
+
+    @Override
+    @Transactional
+    public RoomDto updateRoomById(Long hotelId, Long roomId, RoomDto roomDto) {
+        log.info("Updating the room with ID: {}", roomId);
+        Hotel hotel = hotelRepository
+                .findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID: "+hotelId));
+
+        User user = getCurrentUser();
+        if(!user.equals(hotel.getOwner())) {
+            throw new UnauthorizedException("This user does not own this hotel with id: "+hotelId);
+        }
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID: "+roomId));
+
+        BigDecimal oldBasePrice = room.getBasePrice();
+        int oldTotalCount = room.getTotalCount();
+
+        //Updated the room
+        modelMapper.map(roomDto, room);
+        room.setId(roomId);
+        room = roomRepository.save(room);
+
+        boolean basePriceChanged = !oldBasePrice.equals(roomDto.getBasePrice());
+        boolean totalCountChanged = oldTotalCount != roomDto.getTotalCount();
+
+        if (basePriceChanged) {
+            inventoryService.updatePricesForRoom(room);
+        }
+
+        if (totalCountChanged) {
+            inventoryService.updateTotalCountForRoom(room, roomDto.getTotalCount());
+        }
+        return modelMapper.map(room, RoomDto.class);
     }
 }

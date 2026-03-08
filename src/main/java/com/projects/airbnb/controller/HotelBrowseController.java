@@ -6,6 +6,7 @@ import com.projects.airbnb.dto.HotelPriceDto;
 import com.projects.airbnb.dto.HotelSearchRequestDto;
 import com.projects.airbnb.service.HotelService;
 import com.projects.airbnb.service.InventoryService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +21,14 @@ public class HotelBrowseController {
     private final HotelService hotelService;
 
     @GetMapping("/search")
+    @Operation(summary = "Search hotels", tags = {"Browse Hotels"})
     public ResponseEntity<Page<HotelPriceDto>> searchHotels(@RequestBody HotelSearchRequestDto hotelSearchRequest){
             Page<HotelPriceDto> page = inventoryService.searchHotels(hotelSearchRequest);
             return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{hotelId}/info")
+    @Operation(summary = "Get a hotel info by hotelId", tags = {"Browse Hotels"})
     public ResponseEntity<HotelInfoDto> getHotelInfo(@PathVariable Long hotelId){
         HotelInfoDto hotelInfo = hotelService.getHotelInfoById(hotelId);
         return ResponseEntity.ok(hotelInfo);
