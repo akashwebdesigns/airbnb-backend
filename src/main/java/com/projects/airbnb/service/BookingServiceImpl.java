@@ -123,7 +123,11 @@ public class BookingServiceImpl implements BookingService{
             throw new UnauthorizedException("Booking does not belong to this user with id: "+currentLoggedInUser.getId());
         }
 
-        if(hasBookingExpired(booking)){
+//        if(hasBookingExpired(booking)){
+//            throw new IllegalStateException("Booking has already expired");
+//        }
+
+        if(booking.getBookingStatus() == BookingStatus.EXPIRED){
             throw new IllegalStateException("Booking has already expired");
         }
 
@@ -156,8 +160,12 @@ public class BookingServiceImpl implements BookingService{
         if(!currentLoggedInUser.equals(booking.getUser())){
             throw new UnauthorizedException("Booking does not belong to this user with id: "+currentLoggedInUser.getId());
         }
+//
+//        if(hasBookingExpired(booking)){
+//            throw new IllegalStateException("Booking has already expired");
+//        }
 
-        if(hasBookingExpired(booking)){
+        if(booking.getBookingStatus() == BookingStatus.EXPIRED){
             throw new IllegalStateException("Booking has already expired");
         }
 
