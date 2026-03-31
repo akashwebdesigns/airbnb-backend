@@ -4,6 +4,7 @@ package com.projects.airbnb.controller;
 import com.projects.airbnb.dto.RoomDto;
 import com.projects.airbnb.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class RoomAdminController {
 
     @PostMapping
     @Operation(summary = "Create a new room in a hotel", tags = {"Admin Inventory"})
-    public ResponseEntity<RoomDto> createNewRoom(@PathVariable Long hotelId, @RequestBody RoomDto roomDto){
+    public ResponseEntity<RoomDto> createNewRoom(@PathVariable Long hotelId, @Valid @RequestBody RoomDto roomDto){
         RoomDto room = roomService.createNewRoom(hotelId,roomDto);
         return new ResponseEntity<>(room, HttpStatus.CREATED);
     }
@@ -49,7 +50,7 @@ public class RoomAdminController {
     @PutMapping("/{roomId}")
     @Operation(summary = "Update a room", tags = {"Admin Inventory"})
     public ResponseEntity<RoomDto> updateRoomById(@PathVariable Long hotelId, @PathVariable Long roomId,
-                                                  @RequestBody RoomDto roomDto) {
+                                                  @Valid @RequestBody RoomDto roomDto) {
         return ResponseEntity.ok(roomService.updateRoomById(hotelId, roomId, roomDto));
     }
 

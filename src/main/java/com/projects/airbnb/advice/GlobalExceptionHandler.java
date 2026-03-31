@@ -8,8 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -67,6 +72,28 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .message(ex.getMessage())
                 .build();
+        return apiResponseWrapper(apiError);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> inputValidationExceptionHandler(
+            MethodArgumentNotValidException exception) {
+
+        // Capture field name + error message
+        Map<String, String> errors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        FieldError::getDefaultMessage,
+                        (existing, duplicate) -> existing  // handle duplicate fields
+                ));
+
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(String.join(", ", errors.values()))
+                .build();
+
         return apiResponseWrapper(apiError);
     }
 

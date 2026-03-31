@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,9 @@ public class InventoryServiceImpl implements InventoryService {
 
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusYears(1);
+
+        List<Inventory> inventories = new ArrayList<>();
+
         for (; !today.isAfter(endDate); today=today.plusDays(1)) {
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
@@ -59,9 +63,14 @@ public class InventoryServiceImpl implements InventoryService {
                     .totalCount(room.getTotalCount())
                     .closed(false)
                     .build();
-            inventoryRepository.save(inventory);
 
+            inventories.add(inventory);
+//            inventoryRepository.save(inventory);
+//            updatePricesForRoom(room);
         }
+        inventoryRepository.saveAll(inventories);
+        updatePricesForRoom(room);
+
     }
 
     @Override

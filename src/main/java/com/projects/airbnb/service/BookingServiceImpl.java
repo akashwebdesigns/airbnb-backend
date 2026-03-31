@@ -49,8 +49,8 @@ public class BookingServiceImpl implements BookingService{
     private final CheckoutService checkoutService;
     private final PricingService pricingService;
     private final ModelMapper modelMapper;
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    @Value("${base.url}")
+    private String baseUrl;
 
     @Override
     @Transactional
@@ -170,8 +170,8 @@ public class BookingServiceImpl implements BookingService{
         }
 
         String checkoutUrl = checkoutService.createCheckoutSession(booking,
-                frontendUrl +"/payments"+bookingId+"/status",
-                frontendUrl +"/payments"+bookingId+"/status");
+                baseUrl +"/success.html?bookingId="+bookingId,
+                baseUrl +"/failure.html?bookingId="+bookingId);
 
         booking.setBookingStatus(BookingStatus.PAYMENTS_PENDING);
         bookingRepository.save(booking);

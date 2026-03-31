@@ -134,6 +134,10 @@ public class HotelServiceImpl implements HotelService {
             throw new UnauthorizedException("This user does not own this hotel with id: "+id);
         }
 
+        if (hotel.getActive()){
+            throw new RuntimeException("Hotel is already active");
+        }
+
         hotel.setActive(true);
 
         //As soon as the hotel gets active, we create inventory for all the rooms(assuming no previous inventories are present and we are creating inventory for the first time)

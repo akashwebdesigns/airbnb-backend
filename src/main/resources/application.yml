@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: AirBnb
+  profiles:
+    active: dev #If no active profile found, it will switch to dev
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  servlet:
+    context-path: /api/v1

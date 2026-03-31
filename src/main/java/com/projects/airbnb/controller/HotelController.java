@@ -7,6 +7,7 @@ import com.projects.airbnb.dto.HotelReportDto;
 import com.projects.airbnb.service.BookingService;
 import com.projects.airbnb.service.HotelService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class HotelController {
 
     @PostMapping
     @Operation(summary = "Create a new hotel", tags = {"Admin Hotel"})
-    public ResponseEntity<HotelDto> createNewHotel(@RequestBody HotelDto hotelDto){
+    public ResponseEntity<HotelDto> createNewHotel(@Valid @RequestBody HotelDto hotelDto){
         log.info("Attempting to create a new hotel with name: {}",hotelDto.getName());
         HotelDto hotel = hotelService.createNewHotel(hotelDto);
         return new ResponseEntity<>(hotel, HttpStatus.CREATED);
@@ -45,7 +46,7 @@ public class HotelController {
 
     @PutMapping("/{hotelId}")
     @Operation(summary = "Update a hotel", tags = {"Admin Hotel"})
-    public ResponseEntity<HotelDto> updateHotelById(@PathVariable(name = "hotelId") Long id, @RequestBody HotelDto hotelDto){
+    public ResponseEntity<HotelDto> updateHotelById(@PathVariable(name = "hotelId") Long id, @Valid @RequestBody HotelDto hotelDto){
         log.info("Attempting to update hotel with ID: {}", id);
         HotelDto hotel = hotelService.updateHotelById(id,hotelDto);
         return new ResponseEntity<>(hotel,HttpStatus.OK);

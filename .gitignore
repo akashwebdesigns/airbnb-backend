@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+#To ignore application-dev.yml
+src/main/resources/application-dev.yml
+
 ### STS ###
 .apt_generated
 .classpath

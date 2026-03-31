@@ -9,12 +9,14 @@ import com.projects.airbnb.service.BookingService;
 import com.projects.airbnb.service.GuestService;
 import com.projects.airbnb.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -26,10 +28,18 @@ public class UserController {
 
     @PatchMapping("/profile")
     @Operation(summary = "Update the user profile", tags = {"Profile"})
-    public ResponseEntity<Void> updateProfile(@RequestBody ProfileUpdateRequestDto profileUpdateRequestDto) {
+    public ResponseEntity<Void> updateProfile(@Valid @RequestBody ProfileUpdateRequestDto profileUpdateRequestDto) {
         userService.updateProfile(profileUpdateRequestDto);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/promote-to-hotel-manager")
+    @Operation(summary = "Upgrade the role of GUEST to HOTEL_MANAGER", tags = {"Profile"})
+    public ResponseEntity<Map<String,String>> promoteToHotelManager(){
+        userService.promoteToHotelManager();
+
+        return ResponseEntity.ok(Map.of("message","Your role has been promoted to Hotel Manager successfully"));
     }
 
     @GetMapping("/myBookings")
@@ -53,13 +63,13 @@ public class UserController {
 
     @PostMapping("/guests")
     @Operation(summary = "Add a new guest to my guests list", tags = {"Booking Guests"})
-    public ResponseEntity<GuestDto> addNewGuest(@RequestBody GuestDto guestDto) {
+    public ResponseEntity<GuestDto> addNewGuest(@Valid @RequestBody GuestDto guestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(guestService.addNewGuest(guestDto));
     }
 
     @PutMapping("guests/{guestId}")
     @Operation(summary = "Update a guest", tags = {"Booking Guests"})
-    public ResponseEntity<Void> updateGuest(@PathVariable Long guestId, @RequestBody GuestDto guestDto) {
+    public ResponseEntity<Void> updateGuest(@PathVariable Long guestId, @Valid @RequestBody GuestDto guestDto) {
         guestService.updateGuest(guestId, guestDto);
         return ResponseEntity.noContent().build();
     }

@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+
+//For theory of Stripe, go to their docs and see the workflow diagram
 public class CheckoutServiceImpl implements CheckoutService{
 
     private final BookingRepository bookingRepository;

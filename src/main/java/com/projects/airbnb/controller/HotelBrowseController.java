@@ -7,6 +7,7 @@ import com.projects.airbnb.dto.HotelSearchRequestDto;
 import com.projects.airbnb.service.HotelService;
 import com.projects.airbnb.service.InventoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class HotelBrowseController {
 
     @GetMapping("/search")
     @Operation(summary = "Search hotels", tags = {"Browse Hotels"})
-    public ResponseEntity<Page<HotelPriceDto>> searchHotels(@RequestBody HotelSearchRequestDto hotelSearchRequest){
+    public ResponseEntity<Page<HotelPriceDto>> searchHotels(@Valid @RequestBody HotelSearchRequestDto hotelSearchRequest){
             Page<HotelPriceDto> page = inventoryService.searchHotels(hotelSearchRequest);
             return ResponseEntity.ok(page);
     }

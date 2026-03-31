@@ -7,6 +7,7 @@ import com.projects.airbnb.dto.GuestDto;
 import com.projects.airbnb.entity.enums.BookingStatus;
 import com.projects.airbnb.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +25,13 @@ public class HotelBookingController {
 
     @PostMapping("/init")
     @Operation(summary = "Initiate the booking", tags = {"Booking Flow"})
-    public ResponseEntity<BookingDto> initialiseBooking(@RequestBody BookingRequestDto bookingRequestDto){
+    public ResponseEntity<BookingDto> initialiseBooking(@Valid @RequestBody BookingRequestDto bookingRequestDto){
         return ResponseEntity.ok(bookingService.initialiseBooking(bookingRequestDto));
     }
 
     @PostMapping("/{bookingId}/addGuests")
     @Operation(summary = "Add guests to the booking", tags = {"Booking Flow"})
-    public ResponseEntity<BookingDto> addGuests(@PathVariable Long bookingId, @RequestBody List<GuestDto> guestDtoList){
+    public ResponseEntity<BookingDto> addGuests(@PathVariable Long bookingId, @Valid @RequestBody List<@Valid GuestDto> guestDtoList){
         return ResponseEntity.ok(bookingService.addGuests(bookingId,guestDtoList));
     }
 

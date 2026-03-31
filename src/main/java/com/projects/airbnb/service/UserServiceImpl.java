@@ -3,6 +3,7 @@ package com.projects.airbnb.service;
 import com.projects.airbnb.dto.ProfileUpdateRequestDto;
 import com.projects.airbnb.dto.UserDto;
 import com.projects.airbnb.entity.User;
+import com.projects.airbnb.entity.enums.Role;
 import com.projects.airbnb.exception.ResourceNotFoundException;
 import com.projects.airbnb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 import static com.projects.airbnb.util.AppUtils.getCurrentUser;
 
@@ -45,6 +48,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         User user = getCurrentUser();
         log.info("Getting the profile for user with id: {}", user.getId());
         return modelMapper.map(user, UserDto.class);
+    }
+
+    @Override
+    public void promoteToHotelManager() {
+        User user = getCurrentUser();
+        user.getRoles().add(Role.HOTEL_MANAGER);
+        userRepository.save(user);
     }
 
     @Override

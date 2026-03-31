@@ -44,6 +44,30 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             String token = requestTokenHeader.split("Bearer ")[1];
             Long userId = jwtService.getUserId(token);
 
+            //Imp about SecurityContext
+            //Stateless Security Context--noting stored
+
+            //Request 1 (POST /bookings):
+            //├── SecurityContext = EMPTY at start
+            //├── JWTAuthFilter runs
+            //│     ├── reads JWT from header
+            //│     ├── validates token
+            //│     ├── fetches user from DB
+            //│     └── sets Authentication in SecurityContext
+            //├── Controller runs ✅
+            //└── Request ends → SecurityContext DESTROYED 🗑️
+            //
+            //
+            //Request 2 (GET /bookings):
+            //├── SecurityContext = EMPTY again at start  ← fresh every time
+            //├── JWTAuthFilter runs again
+            //│     ├── reads JWT from header
+            //│     ├── validates token
+            //│     ├── fetches user from DB              ← DB hit on every request
+            //│     └── sets Authentication in SecurityContext
+            //├── Controller runs ✅
+            //└── Request ends → SecurityContext DESTROYED 🗑️
+
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = userService.getUserById(userId);
 

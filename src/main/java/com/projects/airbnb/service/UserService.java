@@ -11,4 +11,6 @@ public interface UserService {
     void updateProfile(ProfileUpdateRequestDto profileUpdateRequestDto);
 
     UserDto getMyProfile();
+
+    void promoteToHotelManager();
 }
